@@ -72,6 +72,54 @@ impl Langtop {
     }
 
     /*
+     * Get the total lines
+     * @return u32 : The total lines
+     */
+    fn get_total_lines(&self) -> u32 {
+        self.total_lines
+    }
+
+    /*
+     * Get the total bytes
+     * @return u32 : The total bytes
+     */
+    fn get_total_bytes(&self) -> u32 {
+        self.total_bytes
+    }
+
+    /*
+     * Get the total directories
+     * @return u32 : The total directories
+     */
+    fn get_total_dirs(&self) -> u32 {
+        self.total_dirs
+    }
+
+    /*
+     * Get the total empty lines
+     * @return u32 : The total empty lines
+     */
+    fn get_total_empty_lines(&self) -> u32 {
+        self.total_empty_lines
+    }
+
+    /*
+     * Get the total comments
+     * @return u32 : The total comments
+     */
+    fn get_total_comments(&self) -> u32 {
+        self.total_comments
+    }
+
+    /*
+     * Get the total code lines
+     * @return u32 : The total code lines
+     */
+    fn get_total_code_lines(&self) -> u32 {
+        self.total_code_lines
+    }
+
+    /*
      * Check if a folder is valid
      * @param path: &str : The path to the folder
      * @return bool
@@ -92,7 +140,7 @@ fn main() {
     println!("Folder name: {}", langtop.get_folder_name());
     println!("Folder path: {}", langtop.get_folder_path().display());
     println!("Is valid folder: {}", langtop.is_valid);
-    println!("Total files: {}", Langtop::get_total_files("./hello/abc"));
+    println!("Total files: {}", langtop.get_total_files());
 
     println!("***** END *****");
 }
