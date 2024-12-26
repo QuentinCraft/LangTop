@@ -141,6 +141,13 @@ fn main() {
     println!("Folder path: {}", langtop.get_folder_path().display());
     println!("Is valid folder: {}", langtop.is_valid);
     println!("Total files: {}", langtop.get_total_files());
+    println!("Total lines: {}", langtop.get_total_lines());
+    println!("Total bytes: {}", langtop.get_total_bytes());
+    println!("Total directories: {}", langtop.get_total_dirs());
+    println!("Total empty lines: {}", langtop.get_total_empty_lines());
+    println!("Total comments: {}", langtop.get_total_comments());
+    println!("Total code lines: {}", langtop.get_total_code_lines());
+    
 
     println!("***** END *****");
 }
