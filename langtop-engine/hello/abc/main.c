@@ -1,3 +1,10 @@
+/*
+    Main file for the project.
+    a
+    a
+    a
+*/
 int main() {
-    return 0;
+    int to_return = 0;
+    return to_return;
 }

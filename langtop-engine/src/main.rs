@@ -1,5 +1,22 @@
+use std::fs;
 use std::path::{Path, PathBuf};
 
+/*
+    This struct holds the result of processing a directory.
+ */
+struct DirectoryResults {
+    total_files: u32,
+    total_lines: u32,
+    total_bytes: u32,
+    total_dirs: u32,
+    total_empty_lines: u32,
+    total_comments: u32,
+    total_code_lines: u32,
+}
+
+/*
+    This struct represents the Langtop engine.
+ */
 struct Langtop {
     folder: String,
     path: PathBuf,
@@ -13,16 +30,18 @@ struct Langtop {
     is_valid: bool,
 }
 
+/*
+    Implementation of the Langtop struct.
+ */
 impl Langtop {
     /*
-     * Constructor
-     * @param path: &str
-     * @return Langtop
+        Constructor for the Langtop struct.
      */
     fn new(path: &str) -> Langtop {
+        let path_buf = PathBuf::from(path);
         Langtop {
             folder: Langtop::extract_folder_name(path),
-            path: PathBuf::from(path),
+            path: path_buf.clone(),
             total_files: 0,
             total_lines: 0,
             total_bytes: 0,
@@ -30,17 +49,15 @@ impl Langtop {
             total_empty_lines: 0,
             total_comments: 0,
             total_code_lines: 0,
-            is_valid: Langtop::is_valid_folder(path)
+            is_valid: Langtop::is_valid_folder(&path_buf),
         }
     }
 
     /*
-     * Extract the folder name from a path
-     * @param path: &str : The path to the folder
-     * @return String : The folder name
+        Extract the folder name from the path.
      */
     fn extract_folder_name(path: &str) -> String {
-        let path: &Path = Path::new(path);
+        let path = Path::new(path);
         path.file_name()
             .and_then(|name| name.to_str())
             .unwrap_or("")
@@ -48,106 +65,130 @@ impl Langtop {
     }
 
     /*
-     * Get the folder path
-     * @return &PathBuf
+        Check if the path is a valid folder.
      */
-    fn get_folder_path(&self) -> &PathBuf {
-        &self.path
-    }
-
-    /*
-     * Get the folder name
-     * @return &str
-     */
-    fn get_folder_name(&self) -> &str {
-        &self.folder
-    }
-
-    /*
-     * Get the total files
-     * @return u32 : The total files
-     */
-    fn get_total_files(&self) -> u32 {
-        self.total_files
-    }
-
-    /*
-     * Get the total lines
-     * @return u32 : The total lines
-     */
-    fn get_total_lines(&self) -> u32 {
-        self.total_lines
-    }
-
-    /*
-     * Get the total bytes
-     * @return u32 : The total bytes
-     */
-    fn get_total_bytes(&self) -> u32 {
-        self.total_bytes
-    }
-
-    /*
-     * Get the total directories
-     * @return u32 : The total directories
-     */
-    fn get_total_dirs(&self) -> u32 {
-        self.total_dirs
-    }
-
-    /*
-     * Get the total empty lines
-     * @return u32 : The total empty lines
-     */
-    fn get_total_empty_lines(&self) -> u32 {
-        self.total_empty_lines
-    }
-
-    /*
-     * Get the total comments
-     * @return u32 : The total comments
-     */
-    fn get_total_comments(&self) -> u32 {
-        self.total_comments
-    }
-
-    /*
-     * Get the total code lines
-     * @return u32 : The total code lines
-     */
-    fn get_total_code_lines(&self) -> u32 {
-        self.total_code_lines
-    }
-
-    /*
-     * Check if a folder is valid
-     * @param path: &str : The path to the folder
-     * @return bool
-     */
-    fn is_valid_folder(path: &str) -> bool {
-        let path: &Path = Path::new(path);
+    fn is_valid_folder(path: &Path) -> bool {
         path.exists() && path.is_dir()
     }
-    
+
+    /*
+        Execute the Langtop engine.
+     */
+    fn execute(&mut self) {
+        // Check if the folder path is valid, if not, panic
+        if !self.is_valid {
+            panic!("Invalid folder path");
+        }
+
+        // Process the directory and get the results
+        let results = self.process_directory(&self.path);
+
+        // Update the state based on the results
+        self.total_files = results.total_files;
+        self.total_lines = results.total_lines;
+        self.total_bytes = results.total_bytes;
+        self.total_dirs = results.total_dirs;
+        self.total_empty_lines = results.total_empty_lines;
+        self.total_comments = results.total_comments;
+        self.total_code_lines = results.total_code_lines;
+    }
+
+    /*
+        Process the directory and return the results.
+     */
+    fn process_directory(&self, dir_path: &Path) -> DirectoryResults {
+        let mut total_files = 0;
+        let mut total_lines = 0;
+        let mut total_bytes = 0;
+        let mut total_dirs = 0;
+        let mut total_empty_lines = 0;
+        let mut total_comments = 0;
+        let mut total_code_lines = 0;
+
+        if let Ok(entries) = fs::read_dir(dir_path) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    println!("[/] Folder: {}", path.display());
+                    total_dirs += 1;
+                    // Recursively process subdirectories
+                    let subdir_results = self.process_directory(&path);
+                    total_files += subdir_results.total_files;
+                    total_lines += subdir_results.total_lines;
+                    total_bytes += subdir_results.total_bytes;
+                    total_dirs += subdir_results.total_dirs;
+                    total_empty_lines += subdir_results.total_empty_lines;
+                    total_comments += subdir_results.total_comments;
+                    total_code_lines += subdir_results.total_code_lines;
+                } else if let Ok(file_content) = fs::read_to_string(&path) {
+                    println!("[*] File: {}", path.display());
+                    total_files += 1;
+                    total_bytes += file_content.len() as u32;
+
+                    let mut empty_lines: u32 = 0;
+                    let mut comments: u32 = 0;
+                    let mut code_lines: u32 = 0;
+                    let mut in_comment_block: bool = false;
+
+                    for line in file_content.lines() {
+                        let trimmed = line.trim();
+                        if trimmed.is_empty() && !in_comment_block {
+                            // Empty line outside a comment block
+                            empty_lines += 1;
+                        } else if trimmed.starts_with("/*") || trimmed.ends_with("*/") {
+                            // Start or end of a comment block
+                            in_comment_block = !in_comment_block;
+                        } else if trimmed.starts_with("//") || trimmed.starts_with("#") || in_comment_block {
+                            // Comment line or line inside a comment block
+                            comments += 1;
+                        } else {
+                            // Line of code
+                            code_lines += 1;
+                        }
+                    }
+
+                    total_lines += (empty_lines + comments + code_lines) as u32;
+                    total_empty_lines += empty_lines;
+                    total_comments += comments;
+                    total_code_lines += code_lines;
+                }
+            }
+        }
+
+        DirectoryResults {
+            total_files,
+            total_lines,
+            total_bytes,
+            total_dirs,
+            total_empty_lines,
+            total_comments,
+            total_code_lines,
+        }
+    }
+
+    fn print_summary(&self) {
+        println!("Folder name: {}", self.folder);
+        println!("Folder path: {}", self.path.display());
+        println!("Is valid folder: {}", self.is_valid);
+        println!("Total files: {}", self.total_files);
+        println!("Total lines: {}", self.total_lines);
+        println!("Total bytes: {}", self.total_bytes);
+        println!("Total directories: {}", self.total_dirs);
+        println!("Total empty lines: {}", self.total_empty_lines);
+        println!("Total comments: {}", self.total_comments);
+        println!("Total code lines: {}", self.total_code_lines);
+    }
 }
 
 fn main() {
     println!("***** Langtop Engine *****");
 
-    // Create a new Langtop instance
-    let langtop = Langtop::new("./hello/abc");
+    let mut langtop = Langtop::new("./hello/abc");
 
-    println!("Folder name: {}", langtop.get_folder_name());
-    println!("Folder path: {}", langtop.get_folder_path().display());
-    println!("Is valid folder: {}", langtop.is_valid);
-    println!("Total files: {}", langtop.get_total_files());
-    println!("Total lines: {}", langtop.get_total_lines());
-    println!("Total bytes: {}", langtop.get_total_bytes());
-    println!("Total directories: {}", langtop.get_total_dirs());
-    println!("Total empty lines: {}", langtop.get_total_empty_lines());
-    println!("Total comments: {}", langtop.get_total_comments());
-    println!("Total code lines: {}", langtop.get_total_code_lines());
-    
+    langtop.execute();
+
+    println!("\n***** Summary *****");
+    langtop.print_summary();
 
     println!("***** END *****");
 }
