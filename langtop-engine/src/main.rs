@@ -64,22 +64,11 @@ impl Langtop {
     }
 
     /*
-     * Get the total files in a specific folder
-     * @param path: &str : The path to the folder
-     * @return u32
+     * Get the total files
+     * @return u32 : The total files
      */
-    fn get_total_files(path: &str) -> u32 {
-        let mut total_files = 0;
-        if let Ok(entries) = std::fs::read_dir(path) {
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    if entry.path().is_file() {
-                        total_files += 1;
-                    }
-                }
-            }
-        }
-        total_files
+    fn get_total_files(&self) -> u32 {
+        self.total_files
     }
 
     /*
@@ -95,7 +84,7 @@ impl Langtop {
 }
 
 fn main() {
-    println!("Hello, world!");
+    println!("***** Langtop Engine *****");
 
     // Create a new Langtop instance
     let langtop = Langtop::new("./hello/abc");
@@ -104,4 +93,6 @@ fn main() {
     println!("Folder path: {}", langtop.get_folder_path().display());
     println!("Is valid folder: {}", langtop.is_valid);
     println!("Total files: {}", Langtop::get_total_files("./hello/abc"));
+
+    println!("***** END *****");
 }
