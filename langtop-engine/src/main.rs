@@ -1,5 +1,6 @@
 // Using the langtop module
 mod langtop;
+mod langdetector;
 
 // Importing the Langtop struct
 use langtop::Langtop;
