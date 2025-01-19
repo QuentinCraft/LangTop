@@ -45,29 +45,29 @@ impl LandDetector {
         let file = File::open(file_path)?;
         let reader = BufReader::new(file);
 
+        let patterns = [
+            ("fn ", "Rust"),
+            ("def ", "Python"),
+            ("function ", "JavaScript"),
+            ("public class ", "Java"),
+            ("class ", "C++"),
+            ("func ", "Go"),
+        ];
+
         for line in reader.lines() {
             let line = line?;
-            if line.contains("fn ") {
-                return Ok(Some("Rust"));
-            } else if line.contains("def ") {
-                return Ok(Some("Python"));
-            } else if line.contains("function ") {
-                return Ok(Some("JavaScript"));
-            } else if line.contains("public class ") {
-                return Ok(Some("Java"));
-            } else if line.contains("class ") {
-                return Ok(Some("C++"));
-            } else if line.contains("func ") {
-                return Ok(Some("Go"));
+            for &(pattern, lang) in &patterns {
+                if line.contains(pattern) {
+                    return Ok(Some(lang));
+                }
             }
-            // Add more function declaration checks as needed
         }
         Ok(None)
     }
 
-    pub fn detect_by_shebang(filename: &str) -> Option<&str> {
-        let shebang = match filename.rfind('\n') {
-            Some(i) => &filename[..i],
+    pub fn detect_by_shebang(content: &str) -> Option<&str> {
+        let shebang = match content.lines().next() {
+            Some(line) => line,
             None => return None,
         };
 
